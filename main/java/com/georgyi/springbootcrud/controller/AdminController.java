@@ -11,10 +11,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,47 +29,73 @@ public class AdminController {
     UserService userService;
 
     @Autowired
-    private RoleService roleService;
-
-    @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public String showUserList(Model modelMap, HttpServletRequest request) throws SQLException {
+    public String showUserList(ModelMap model, HttpServletRequest request) throws SQLException {
         List<User> allUsers = userService.listAllUsers();
-        modelMap.addAttribute("allUsers", allUsers);
+        HttpSession session = request.getSession();
+        User authUser = (User) session.getAttribute("user");
+        String userEmail = authUser.getEmail();
+        String forRole = "with roles: ";
+        Set<Role> roles = authUser.getRoles();
+        model.addAttribute("username", userEmail);
+        model.addAttribute("string", forRole);
+        model.addAttribute("roles", roles);
+        model.addAttribute("allUsers", allUsers);
         return "admin";
     }
 
-    @GetMapping("/edit/{id}")
-    public ModelAndView showEditProductPage(@PathVariable(name = "id") long id) throws SQLException {
-        ModelAndView mav = new ModelAndView("editPage");
-        User user = userService.getUserById(id);
-        mav.addObject("userEdit", user);
-        List<User> roles = roleService.findAllRoles();
-        mav.addObject("allRoles", roles);
-        return mav;
-    }
-
     @PostMapping("/update")
-    public String updateUser(@ModelAttribute("user") User user,
-                              String[] roles ) throws Exception {
-        if(roles==null){
+    public String updateUser(@ModelAttribute("user") User user, HttpServletRequest req, String[] role) throws Exception {
+        if (role == null) {
             return "redirect:/admin/list";
         }
-        Set<Role> userRoles = new HashSet<>();
-        for(String s: roles) {
-            userRoles.add(new Role(s));
+        if (user.getPassword().equals("")) {
+            return "redirect:/admin/list";
         }
+        Set<Role> roles = new HashSet<>();
+        try {
+            if (req.getParameter("role").equals("admin")) {
+                roles.add(userService.getRoleById(1L));
+                roles.add(userService.getRoleById(2L));
+            } else if (req.getParameter("role").equals("user")) {
+                roles.add(userService.getRoleById(2l));
+            }
+        } catch (Exception e) {
+            System.out.println(user.getEmail() + " not make it admin");
+        }
+        user.setRoles(roles);
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         userService.updateUser(user);
         return "redirect:/admin/list";
+
     }
 
-    @RequestMapping("/deleteUser/{id}")
-    public String deleteProduct(@PathVariable(name = "id") long id) throws SQLException {
-        userService.deleteUser(id);
+    @PostMapping("/delete")
+    public String deleteProduct(@ModelAttribute("user") User user, HttpServletRequest req,
+                                Model model) throws SQLException {
+        userService.deleteUser(user.getId());
         return "redirect:/admin/list";
+    }
+
+    @PostMapping("/addUser")
+    public String newUserSubmit(@ModelAttribute("userForm") User user, HttpServletRequest req) throws Exception {
+        Set<Role> roles = new HashSet<>();
+        if (user.getPassword().startsWith("admin") && req.getParameter("role").equals("admin")) {
+            roles.add(userService.getRoleById(1L));
+            roles.add(userService.getRoleById(2L));
+            user.setRoles(roles);
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            userService.addUser(user);
+            return "redirect:/admin/list";
+        } else {
+            roles.add(userService.getRoleById(2L));
+            user.setRoles(roles);
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            userService.addUser(user);
+            return "redirect:/admin/list";
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.georgyi.springbootcrud;
 
+import com.georgyi.springbootcrud.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -17,6 +18,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                                         HttpServletResponse httpServletResponse,
                                         Authentication authentication) throws IOException {
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
+
+        User user = (User) authentication.getPrincipal();
+        httpServletRequest.getSession().setAttribute("user", user);
+
         if (roles.contains("ADMIN")) {
             httpServletResponse.sendRedirect("/admin/list");
         }else

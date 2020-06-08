@@ -17,6 +17,16 @@ public class User implements UserDetails {
     @Column(name = "name")
     private String userName;
 
+    @Column(name = "lastname")
+    private String lastName;
+
+    public int getAge() {
+        return age;
+    }
+
+    @Column(name = "age")
+    private int age;
+
     @Column(name = "password")
     private String password;
 
@@ -96,6 +106,7 @@ public class User implements UserDetails {
         this.roles=roles;
     }
 
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -166,5 +177,17 @@ public class User implements UserDetails {
 
     public void setId(Long id){
         this.id = id;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 }

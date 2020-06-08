@@ -46,13 +46,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .loginPage("/login")
                 .successHandler(new LoginSuccessHandler())
                 .loginProcessingUrl("/login")
-                .usernameParameter("username")
-                .passwordParameter("password")
+                 .usernameParameter("username")
+                 .passwordParameter("password")
                 .permitAll();
         http.logout()
                 .permitAll()
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/registrationPage")
+                .logoutSuccessUrl("/login")
                 .logoutUrl("/logout")
                 .and().csrf().disable();
         http

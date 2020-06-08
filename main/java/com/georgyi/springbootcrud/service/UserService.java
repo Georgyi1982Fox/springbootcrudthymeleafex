@@ -7,11 +7,12 @@ import java.util.List;
 
 public interface UserService {
     List<User> listAllUsers() throws SQLException;
-    boolean addUser(User user) throws Exception;
+    void addUser(User user) throws Exception;
     void updateUser(User user) throws SQLException;
     void deleteUser(Long id) throws SQLException;
     User getUserById(Long id) throws SQLException;
     boolean validate(String name) throws SQLException;
+    Role getRoleById(long id) throws SQLException;
     User findUserByUserName(String userName) throws SQLException;
 }
 

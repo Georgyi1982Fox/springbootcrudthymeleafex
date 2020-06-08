@@ -36,24 +36,8 @@ public class UserServiceImp implements UserDetailsService, UserService {
     }
 
     @Transactional
-    public boolean addUser(User user) throws Exception {
-        Set<Role> roles = new HashSet<>();
-        roles.add(new Role(1L, "ADMIN"));
-        roles.add(new Role(2L, "USER"));
-        if (user.getUsername().equals("") && user.getPassword().equals("")) {
-             return false;
-        }else
-
-        if (user.getUsername().startsWith("admin") && user.getPassword().startsWith("admin")) {
-            user.setRoles(roles);
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            userDAO.addUser(user);
-        } else {
-            user.setRoles(Collections.singleton(new Role(2L, "USER")));
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            userDAO.addUser(user);
-        }
-           return true;
+    public void addUser(User user) throws Exception {
+        userDAO.addUser(user);
         }
 
     @Transactional
